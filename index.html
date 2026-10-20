@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QuickRide Cabs India | Online Cab Booking</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#f3f6fb;
+  color:#172033;
+}
+header{
+  background:#0b1730;
+  color:white;
+  padding:20px;
+  text-align:center;
+}
+header h1{margin:0;color:#ffbf36}
+header a{color:white}
+.hero{
+  background:#152e53;
+  color:white;
+  padding:30px 18px;
+  text-align:center;
+}
+.hero h2{font-size:30px}
+.container{
+  max-width:650px;
+  margin:25px auto;
+  padding:20px;
+}
+.card{
+  background:white;
+  padding:22px;
+  border-radius:14px;
+  box-shadow:0 5px 20px #0001;
+}
+label{
+  display:block;
+  font-weight:bold;
+  margin-top:13px;
+}
+input,select,textarea{
+  width:100%;
+  padding:12px;
+  margin-top:5px;
+  border:1px solid #ccd3df;
+  border-radius:7px;
+  font-size:16px;
+}
+button{
+  width:100%;
+  padding:14px;
+  margin-top:20px;
+  background:#168c55;
+  color:white;
+  border:0;
+  border-radius:8px;
+  font-size:17px;
+  font-weight:bold;
+}
+button:disabled{opacity:.6}
+#status{
+  margin-top:15px;
+  overflow-wrap:anywhere;
+}
+footer{
+  background:#0b1730;
+  color:white;
+  text-align:center;
+  padding:22px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>🚖 QuickRide Cabs India</h1>
+  <p>आपकी यात्रा, हमारी जिम्मेदारी</p>
+  <a href="tel:+918853115915">📞 8853115915 पर कॉल करें</a>
+</header>
+
+<section class="hero">
+  <h2>अपनी कैब ऑनलाइन बुक करें</h2>
+  <p>लोकल • आउटस्टेशन • एयरपोर्ट • शादी / इवेंट</p>
+</section>
+
+<main class="container">
+  <div class="card">
+    <h2>बुकिंग फॉर्म</h2>
+
+    <form id="bookingForm">
+
+      <label for="name">आपका नाम *</label>
+      <input id="name" required>
+
+      <label for="mobile">मोबाइल नंबर *</label>
+      <input id="mobile" type="tel" inputmode="tel"
+             pattern="[0-9+\- ()]{10,16}" required>
+
+      <label for="type">बुकिंग का प्रकार *</label>
+      <select id="type" required>
+        <option value="">चुनें</option>
+        <option>लोकल बुकिंग</option>
+        <option>आउटस्टेशन बुकिंग</option>
+        <option>एयरपोर्ट पिकअप</option>
+        <option>एयरपोर्ट ड्रॉप</option>
+        <option>शादी / इवेंट</option>
+      </select>
+
+      <label for="pickup">पिकअप कहाँ से? *</label>
+      <input id="pickup" required>
+
+      <label for="drop">कहाँ जाना है? *</label>
+      <input id="drop" required>
+
+      <label for="date">यात्रा की तारीख *</label>
+      <input id="date" type="date" required>
+
+      <label for="time">पिकअप का समय *</label>
+      <input id="time" type="time" required>
+
+      <label for="car">गाड़ी का प्रकार *</label>
+      <select id="car" required>
+        <option value="">गाड़ी चुनें</option>
+        <option>Hatchback</option>
+        <option>Sedan</option>
+        <option>SUV / MUV</option>
+        <option>शादी की कार</option>
+        <option>कोई भी उपलब्ध गाड़ी</option>
+      </select>
+
+      <label for="people">कितने यात्री?</label>
+      <select id="people">
+        <option>1</option>
+        <option>2</option>
+        <option selected>3</option>
+        <option>4</option>
+        <option>5</option>
+        <option>6</option>
+        <option>7 या अधिक</option>
+      </select>
+
+      <label for="details">अतिरिक्त जानकारी</label>
+      <textarea id="details" rows="3"></textarea>
+
+      <button id="submitButton" type="submit">
+        बुकिंग अनुरोध भेजें
+      </button>
+
+      <p id="status" aria-live="polite"></p>
+    </form>
+  </div>
+</main>
+
+<footer>
+  <p>QuickRide Cabs India</p>
+  <p>Local • Outstation • Airport • Wedding</p>
+  <p>© <span id="year"></span></p>
+</footer>
+
+<script>
+"use strict";
+
+const SUPABASE_FUNCTION_URL =
+  "https://vhekazwlglduwusvavly.supabase.co/functions/v1/swift-processor";
+
+const WHATSAPP_NUMBER = "918853115915";
+
+const form = document.getElementById("bookingForm");
+const statusBox = document.getElementById("status");
+const submitButton = document.getElementById("submitButton");
+const dateInput = document.getElementById("date");
+
+document.getElementById("year").textContent =
+  new Date().getFullYear();
+
+dateInput.min = new Date().toLocaleDateString("en-CA");
+
+form.addEventListener("submit", async function(event) {
+  event.preventDefault();
+
+  if (!form.reportValidity()) return;
+
+  const value = id =>
+    document.getElementById(id).value.trim();
+
+  const digits = value("mobile").replace(/\D/g, "");
+
+  if (digits.length < 10 || digits.length > 13) {
+    statusBox.textContent = "कृपया सही मोबाइल नंबर भरें।";
+    return;
+  }
+
+  const booking = {
+    customer_name: value("name"),
+    customer_phone: value("mobile"),
+    service_type: value("type"),
+    requested_car_name: value("car"),
+    pickup_location: value("pickup"),
+    destination: value("drop"),
+    travel_date: value("date"),
+    travel_time: value("time")
+  };
+
+  submitButton.disabled = true;
+  statusBox.textContent = "बुकिंग सेव हो रही है...";
+
+  try {
+    const response = await fetch(SUPABASE_FUNCTION_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(booking)
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || result.success !== true) {
+      throw new Error(
+        result.message || "बुकिंग सेव नहीं हुई।"
+      );
+    }
+
+    const message = [
+      "नई कैब बुकिंग - QuickRide Cabs India",
+      "बुकिंग नंबर: " +
+        (result.booking?.booking_number || "पुष्टि लंबित"),
+      "नाम: " + booking.customer_name,
+      "मोबाइल: " + booking.customer_phone,
+      "बुकिंग: " + booking.service_type,
+      "पिकअप: " + booking.pickup_location,
+      "डेस्टिनेशन: " + booking.destination,
+      "तारीख: " + booking.travel_date,
+      "समय: " + booking.travel_time,
+      "गाड़ी: " + booking.requested_car_name,
+      "यात्री: " + value("people"),
+      "अतिरिक्त जानकारी: " + (value("details") || "नहीं दी गई")
+    ].join("\n");
+
+    statusBox.textContent =
+      "बुकिंग सेव हो गई। अब WhatsApp में संदेश जाँचकर Send दबाएँ।";
+
+    const whatsappURL =
+      "https://wa.me/" + WHATSAPP_NUMBER +
+      "?text=" + encodeURIComponent(message);
+
+    window.location.href = whatsappURL;
+
+  } catch (error) {
+    statusBox.textContent =
+      "बुकिंग सेव नहीं हुई: " + error.message +
+      "। कृपया 8853115915 पर कॉल करें।";
+  } finally {
+    submitButton.disabled = false;
+  }
+});
+</script>
+
+</body>
+</html>
